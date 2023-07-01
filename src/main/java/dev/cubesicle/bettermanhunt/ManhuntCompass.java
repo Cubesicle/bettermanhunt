@@ -162,6 +162,7 @@ public class ManhuntCompass {
         meta.setDisplayName(ChatColor.RED + "Manhunt Compass");
         meta.addEnchant(Enchantment.VANISHING_CURSE, 1, false);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.setLodestone(new Location(Bukkit.getWorlds().get(0), 0, 1000, 0));
         meta.setLodestoneTracked(true);
 
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
