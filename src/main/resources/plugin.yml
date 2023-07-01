@@ -1,0 +1,9 @@
+name: BetterManhunt
+version: '${version}'
+main: dev.cubesicle.bettermanhunt.Main
+api-version: '1.20'
+description: A manhunt plugin with more compass features.
+commands:
+  hunter:
+    description: Manage manhunt hunters.
+    usage: /hunter [add <player> | remove <player> | list]
