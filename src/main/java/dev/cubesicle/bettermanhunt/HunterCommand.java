@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Optional;
 
 public class HunterCommand implements CommandExecutor {
     @Override
@@ -56,26 +56,26 @@ public class HunterCommand implements CommandExecutor {
 
         String playerName = args[1];
 
-        List<OfflinePlayer> targetsInList = HunterList.getOffline().filter(player -> player.getName() != null && player.getName().equalsIgnoreCase(playerName)).toList();
-        OfflinePlayer target = targetsInList.size() > 0 ? targetsInList.get(0) : null;
-        if (target == null) {
+        Optional<OfflinePlayer> target = HunterList.getOffline().filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(playerName)).findFirst();
+
+        if (target.isEmpty()) {
             sender.sendMessage(ChatColor.RED + "Could not find " + playerName + ".");
             return true;
         }
 
-        if (!HunterList.remove(target.getUniqueId())) {
-            sender.sendMessage(ChatColor.RED + target.getName() + " is not a hunter.");
+        if (!HunterList.remove(target.get().getUniqueId())) {
+            sender.sendMessage(ChatColor.RED + target.get().getName() + " is not a hunter.");
             return true;
         }
 
-        if (target != sender) sender.sendMessage(ChatColor.GREEN + target.getName() + " is no longer a hunter.");
+        if (target.get() != sender) sender.sendMessage(ChatColor.GREEN + target.get().getName() + " is no longer a hunter.");
         return true;
     }
 
     private boolean list(CommandSender sender, String[] args) {
         if (args.length != 1) return false;
 
-        String names = String.join(", ", HunterList.getOffline().map(player -> player.getName() + (!player.isOnline() ? " (offline)" : "")).toList());
+        String names = String.join(", ", HunterList.getOffline().map(p -> p.getName() + (!p.isOnline() ? " (offline)" : "")).toList());
 
         if (names.equals("")) sender.sendMessage(ChatColor.RED + "There are no hunters.");
         else sender.sendMessage(ChatColor.GOLD + "Hunters: " + ChatColor.RESET + names);

@@ -10,10 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class ManhuntCompass {
     private static final NamespacedKey COMPASS_DATA_KEY = new NamespacedKey(Main.getInstance(), "compass_data");
@@ -46,8 +43,8 @@ public class ManhuntCompass {
     }
 
     public static void resetCompass(Player player) {
-        player.getInventory().forEach(itemStack -> {
-            if (itemStack != null && isManhuntCompass(itemStack)) itemStack.setAmount(0);
+        player.getInventory().forEach(item -> {
+            if (item != null && isManhuntCompass(item)) item.setAmount(0);
         });
         if (HunterList.getOnline().anyMatch(player::equals)) player.getInventory().addItem(new ManhuntCompass().getItemStack());
     }
@@ -66,26 +63,20 @@ public class ManhuntCompass {
         ManhuntCompassData compassData = getCompassData();
         compassData.setTrackingHunters(!compassData.isTrackingHunters());
 
-        List<? extends Player> targetList;
-        Comparator<Player> distanceComparator = Comparator.comparingDouble(player -> {
-            Location location = player.getLocation();
+        Optional<Player> target;
+        Comparator<Player> distanceComparator = Comparator.comparingDouble(p -> {
+            Location location = p.getLocation();
             location.setWorld(exclude.getWorld());
             return location.distance(exclude.getLocation());
         });
         if (compassData.isTrackingHunters()) {
-            targetList = HunterList.getOnline()
-                    .filter(player -> !player.equals(exclude))
-                    .sorted(distanceComparator)
-                    .toList();
+            target = HunterList.getOnline().filter(p -> !p.equals(exclude)).min(distanceComparator);
         } else {
-            targetList = Bukkit.getOnlinePlayers().stream()
-                    .filter(player -> HunterList.getOnline().noneMatch(player::equals))
-                    .sorted(distanceComparator)
-                    .toList();
+            target = Bukkit.getOnlinePlayers().stream().map(p -> (Player) p).filter(p -> HunterList.getOnline().noneMatch(p::equals)).min(distanceComparator);
         }
-        if (targetList.size() < 1) return false;
+        if (target.isEmpty()) return false;
 
-        compassData.setSelectedTarget(targetList.get(0));
+        compassData.setSelectedTarget(target.get());
         setCompassData(compassData);
 
         return true;
@@ -96,9 +87,9 @@ public class ManhuntCompass {
 
         List<? extends Player> targetList;
         if (compassData.isTrackingHunters()) {
-            targetList = HunterList.getOnline().filter(player -> !player.equals(exclude)).toList();
+            targetList = HunterList.getOnline().filter(p -> !p.equals(exclude)).toList();
         } else {
-            targetList = Bukkit.getOnlinePlayers().stream().filter(player -> HunterList.getOnline().noneMatch(player::equals)).toList();
+            targetList = Bukkit.getOnlinePlayers().stream().filter(p -> HunterList.getOnline().noneMatch(p::equals)).toList();
         }
         if (targetList.size() < 1) return false;
 
